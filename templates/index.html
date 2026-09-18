@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gästbok</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container">
+    <h1>Gästbok</h1>
+    <p class="intro">Skriv en hälsning i formuläret.</p>
+
+    <section class="form-box">
+      <h2>Skriv ett inlägg</h2>
+      <form method="post">
+        <label>Namn <span>*</span><input type="text" name="name" maxlength="60" required></label>
+        <label>E-post <small>(valfritt)</small><input type="email" name="email" maxlength="100"></label>
+        <label>Meddelande <span>*</span><textarea name="comment" maxlength="500" rows="5" required></textarea></label>
+        <button type="submit">Publicera</button>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+      </form>
+    </section>
+
+    <section class="posts">
+      <h2>Inlägg</h2>
+      {% for post in posts %}
+        <article class="post">
+          <strong>{{ post.name }}</strong>
+          <time>{{ post.time[:16].replace('T', ' ') }}</time>
+          {% if post.email %}<a href="mailto:{{ post.email }}">{{ post.email }}</a>{% endif %}
+          <p>{{ post.comment }}</p>
+        </article>
+      {% else %}
+        <p>Det finns inga inlägg ännu.</p>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>
