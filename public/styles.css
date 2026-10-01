@@ -21,10 +21,13 @@ body {
   padding: 50px 0;
 }
 
+.login-container { width: min(420px, calc(100% - 32px)); padding-top: 64px; }
 h1, h2 { color: var(--dark-blue); }
-h1 { margin-bottom: 8px; text-align: center; }
+h1 { margin: 0 0 8px; text-align: center; }
 h2 { margin-top: 0; }
+.page-header { margin-bottom: 28px; text-align: center; }
 .intro { margin-top: 0; text-align: center; }
+.back-link { display: inline-block; margin-bottom: 18px; color: var(--blue); }
 
 .form-box, .posts {
   margin-top: 28px;
@@ -34,6 +37,8 @@ h2 { margin-top: 0; }
   background: white;
 }
 
+.access-box { margin-top: 0; }
+.access-box h1 { margin-bottom: 24px; }
 label { display: block; margin-top: 16px; font-weight: bold; }
 label span, .error { color: #c0392b; }
 input, textarea {
@@ -59,6 +64,9 @@ button {
   cursor: pointer;
 }
 button:hover { background: var(--dark-blue); }
+.access-box button { width: 100%; }
+.continue-row { margin-top: 24px; text-align: center; }
+.continue-link { color: var(--dark-blue); font-weight: bold; }
 
 .post { padding: 16px 0; border-bottom: 1px solid var(--border); }
 .post:last-child { border-bottom: 0; }
@@ -66,7 +74,7 @@ button:hover { background: var(--dark-blue); }
 .post p { margin-bottom: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 @media (max-width: 500px) {
-  .container { padding-top: 28px; }
+  .container, .login-container { padding-top: 28px; }
   .form-box, .posts { padding: 18px; }
   .post time { float: none; display: block; margin-top: 4px; }
 }

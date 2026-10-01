@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logga in</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container login-container">
+    <section class="form-box access-box" aria-labelledby="login-heading">
+      <h1 id="login-heading">Logga in</h1>
+      <form class="inactive-form">
+        <label for="username">Användarnamn</label>
+        <input id="username" name="username" type="text" autocomplete="username" placeholder="Ditt användarnamn">
+        <label for="password">Lösenord</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Ditt lösenord">
+        <button type="button">Logga in</button>
+      </form>
+    </section>
+
+    <p class="continue-row"><a class="continue-link" href="{{ url_for('guestbook') }}">Till gästboken <span aria-hidden="true">&rarr;</span></a></p>
+  </main>
+</body>
+</html>

@@ -24,8 +24,13 @@ def save_posts(posts):
     )
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.get("/")
 def index():
+    return render_template("login.html")
+
+
+@app.route("/guestbook", methods=["GET", "POST"])
+def guestbook():
     error = None
     if request.method == "POST":
         name = request.form.get("name", "").strip()
