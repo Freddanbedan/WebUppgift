@@ -8,18 +8,24 @@
 </head>
 <body>
   <main class="container">
-    <header class="page-header">
-      <a class="back-link" href="{{ url_for('index') }}">Till startsidan</a>
-      <h1>Gästbok</h1>
-      <p class="intro">Skriv om du vill</p>
+    <header class="forum-header">
+      <div>
+        <p class="eyebrow">PROGRAMMERING OCH DATA</p>
+        <h1>Forum för fårskallar</h1>
+      </div>
+      <div class="user-actions">
+        <strong>{{ username }}</strong>
+        <form method="post" action="{{ url_for('logout') }}">
+          <button class="secondary-button" type="submit">Logga ut</button>
+        </form>
+      </div>
     </header>
 
     <section class="form-box">
-      <h2>Skriv ett inlägg</h2>
+      <h2>Skriv en fråga eller ett inlägg</h2>
       <form method="post">
-        <label>Namn <span>*</span><input type="text" name="name" maxlength="60" required></label>
-        <label>E-post <small>(valfritt)</small><input type="email" name="email" maxlength="100"></label>
-        <label>Meddelande <span>*</span><textarea name="comment" maxlength="500" rows="5" required></textarea></label>
+        <label for="content">Inlägg</label>
+        <textarea id="content" name="content" maxlength="1000" rows="5" required></textarea>
         <button type="submit">Publicera</button>
         {% if error %}<p class="error">{{ error }}</p>{% endif %}
       </form>
@@ -29,10 +35,9 @@
       <h2>Inlägg</h2>
       {% for post in posts %}
         <article class="post">
-          <strong>{{ post.name }}</strong>
-          <time>{{ post.time[:16].replace('T', ' ') }}</time>
-          {% if post.email %}<a href="mailto:{{ post.email }}">{{ post.email }}</a>{% endif %}
-          <p>{{ post.comment }}</p>
+          <strong>{{ post["author_name"] }}</strong>
+          <time>{{ post["created_at"][:16].replace('T', ' ') }}</time>
+          <p>{{ post["content"] }}</p>
         </article>
       {% else %}
         <p>Det finns inga inlägg ännu.</p>
