@@ -103,12 +103,6 @@ def login_required(view):
     return wrapped_view
 
 
-def render_login(error=None, active_form="login", status=200):
-    return render_template(
-        "login.html", error=error, active_form=active_form
-    ), status
-
-
 init_database()
 
 
@@ -116,25 +110,27 @@ init_database()
 def index():
     if "user_id" in session:
         return redirect(url_for("forum"))
-    return render_login()
+    return redirect(url_for("login"))
 
 
-@app.post("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if "user_id" in session:
+        return redirect(url_for("forum"))
+    if request.method == "GET":
+        return render_template("register.html")
+
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
     if not re.fullmatch(r"[A-Za-z0-9_]{3,30}", username):
-        return render_login(
-            "Användarnamnet ska vara 3–30 tecken och bara innehålla bokstäver, siffror eller _. ",
-            active_form="register",
-            status=400,
-        )
+        return render_template(
+            "register.html",
+            error="Användarnamnet ska vara 3–30 tecken och bara innehålla bokstäver, siffror eller _.",
+        ), 400
     if len(password) < 8 or len(password) > 128:
-        return render_login(
-            "Lösenordet ska vara minst 8 tecken.",
-            active_form="register",
-            status=400,
-        )
+        return render_template(
+            "register.html", error="Lösenordet ska vara minst 8 tecken."
+        ), 400
 
     try:
         with database() as connection:
@@ -148,9 +144,9 @@ def register():
             )
             user_id = cursor.lastrowid
     except sqlite3.IntegrityError:
-        return render_login(
-            "Användarnamnet används redan.", active_form="register", status=400
-        )
+        return render_template(
+            "register.html", error="Användarnamnet används redan."
+        ), 400
 
     session.clear()
     session["user_id"] = user_id
@@ -158,8 +154,13 @@ def register():
     return redirect(url_for("forum"))
 
 
-@app.post("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user_id" in session:
+        return redirect(url_for("forum"))
+    if request.method == "GET":
+        return render_template("login.html")
+
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
     with database() as connection:
@@ -169,9 +170,9 @@ def login():
         ).fetchone()
 
     if user is None or not check_password_hash(user["password_hash"], password):
-        return render_login(
-            "Fel användarnamn eller lösenord.", active_form="login", status=401
-        )
+        return render_template(
+            "login.html", error="Fel användarnamn eller lösenord."
+        ), 401
 
     session.clear()
     session["user_id"] = user["id"]
@@ -182,7 +183,7 @@ def login():
 @app.post("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("index"))
+    return redirect(url_for("login"))
 
 
 @app.route("/forum", methods=["GET", "POST"])

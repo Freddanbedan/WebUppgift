@@ -21,7 +21,7 @@ body {
   padding: 50px 0;
 }
 
-.login-container { width: min(820px, calc(100% - 32px)); padding-top: 48px; }
+.login-container { width: min(420px, calc(100% - 32px)); padding-top: 48px; }
 h1, h2 { color: var(--dark-blue); }
 h1 { margin: 0 0 8px; text-align: center; }
 h2 { margin-top: 0; }
@@ -37,12 +37,13 @@ h2 { margin-top: 0; }
   background: white;
 }
 
-.auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .auth-box { margin-top: 0; }
 .auth-box h2 { margin-bottom: 20px; }
 .auth-box button { width: 100%; }
 .auth-error, .notice { margin: 0 0 18px; text-align: center; }
 .notice { color: var(--dark-blue); }
+.auth-switch { margin-top: 22px; text-align: center; }
+.auth-switch a { color: var(--blue); font-weight: bold; }
 label { display: block; margin-top: 16px; font-weight: bold; }
 label span, .error { color: #c0392b; }
 input, textarea {
@@ -83,7 +84,6 @@ button:hover { background: var(--dark-blue); }
 @media (max-width: 500px) {
   .container, .login-container { padding-top: 28px; }
   .form-box, .posts { padding: 18px; }
-  .auth-grid { grid-template-columns: 1fr; }
   .forum-header, .user-actions { align-items: flex-start; flex-direction: column; }
   .forum-header h1 { text-align: left; }
   .post time { float: none; display: block; margin-top: 4px; }

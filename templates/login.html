@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Logga in</title>
+  <title>Logga in | Forum för fårskallar</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -11,6 +11,7 @@
     <header class="page-header">
       <p class="eyebrow">PROGRAMMERING OCH DATA</p>
       <h1>Forum för fårskallar</h1>
+      <p class="intro">Logga in på ditt konto</p>
     </header>
 
     {% if error %}<p class="error auth-error" role="alert">{{ error }}</p>{% endif %}
@@ -18,29 +19,18 @@
       {% for message in messages %}<p class="notice">{{ message }}</p>{% endfor %}
     {% endwith %}
 
-    <div class="auth-grid">
-      <section class="form-box auth-box" aria-labelledby="login-heading">
-        <h2 id="login-heading">Logga in</h2>
-        <form method="post" action="{{ url_for('login') }}">
-          <label for="login-username">Användarnamn</label>
-          <input id="login-username" name="username" type="text" maxlength="30" autocomplete="username" required>
-          <label for="login-password">Lösenord</label>
-          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
-          <button type="submit">Logga in</button>
-        </form>
-      </section>
+    <section class="form-box auth-box" aria-labelledby="login-heading">
+      <h2 id="login-heading">Logga in</h2>
+      <form method="post" action="{{ url_for('login') }}">
+        <label for="login-username">Användarnamn</label>
+        <input id="login-username" name="username" type="text" maxlength="30" autocomplete="username" required>
+        <label for="login-password">Lösenord</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Logga in</button>
+      </form>
+    </section>
 
-      <section class="form-box auth-box" aria-labelledby="register-heading">
-        <h2 id="register-heading">Skapa konto</h2>
-        <form method="post" action="{{ url_for('register') }}">
-          <label for="register-username">Användarnamn</label>
-          <input id="register-username" name="username" type="text" minlength="3" maxlength="30" autocomplete="username" required>
-          <label for="register-password">Lösenord, minst 8 tecken</label>
-          <input id="register-password" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
-          <button type="submit">Skapa konto</button>
-        </form>
-      </section>
-    </div>
+    <p class="auth-switch">Har du inget konto? <a href="{{ url_for('register') }}">Skapa konto</a></p>
   </main>
 </body>
 </html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skapa konto | Forum för fårskallar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container login-container">
+    <header class="page-header">
+      <p class="eyebrow">PROGRAMMERING OCH DATA</p>
+      <h1>Forum för fårskallar</h1>
+      <p class="intro">Skapa ett konto för att delta i forumet</p>
+    </header>
+
+    {% if error %}<p class="error auth-error" role="alert">{{ error }}</p>{% endif %}
+
+    <section class="form-box auth-box" aria-labelledby="register-heading">
+      <h2 id="register-heading">Skapa konto</h2>
+      <form method="post" action="{{ url_for('register') }}">
+        <label for="register-username">Användarnamn</label>
+        <input id="register-username" name="username" type="text" minlength="3" maxlength="30" autocomplete="username" required>
+        <label for="register-password">Lösenord, minst 8 tecken</label>
+        <input id="register-password" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
+        <button type="submit">Skapa konto</button>
+      </form>
+    </section>
+
+    <p class="auth-switch">Har du redan ett konto? <a href="{{ url_for('login') }}">Logga in</a></p>
+  </main>
+</body>
+</html>
