@@ -5,15 +5,15 @@ import json
 import os
 from pathlib import Path
 import re
-import sqlite3
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
+import pymysql
+from pymysql.cursors import DictCursor
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
-DATABASE_FILE = DATA_DIR / "forum.db"
 LEGACY_DATA_FILE = DATA_DIR / "posts.json"
 app = Flask(__name__, static_folder="public", template_folder="templates")
 app.config.update(
@@ -25,46 +25,63 @@ app.config.update(
 
 @contextmanager
 def database():
-    connection = sqlite3.connect(DATABASE_FILE)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
+    connection = pymysql.connect(
+        host=os.environ.get("MYSQL_HOST", "127.0.0.1"),
+        port=int(os.environ.get("MYSQL_PORT", "3306")),
+        user=os.environ.get("MYSQL_USER", "root"),
+        password=os.environ.get("MYSQL_PASSWORD", ""),
+        database=os.environ.get("MYSQL_DATABASE", "forum"),
+        charset="utf8mb4",
+        cursorclass=DictCursor,
+    )
+    cursor = connection.cursor()
     try:
-        yield connection
+        yield cursor
         connection.commit()
     except Exception:
         connection.rollback()
         raise
     finally:
+        cursor.close()
         connection.close()
 
 
 def init_database():
-    DATA_DIR.mkdir(exist_ok=True)
     with database() as connection:
-        connection.executescript(
+        connection.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS posts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-                author_name TEXT NOT NULL,
-                content TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS migrations (
-                name TEXT PRIMARY KEY
-            );
+                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(30) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at VARCHAR(40) NOT NULL
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
             """
         )
-        migration = connection.execute(
-            "SELECT name FROM migrations WHERE name = ?",
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS posts (
+                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NULL,
+                author_name VARCHAR(60) NOT NULL,
+                content VARCHAR(1000) NOT NULL,
+                created_at VARCHAR(40) NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS migrations (
+                name VARCHAR(100) NOT NULL PRIMARY KEY
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+            """
+        )
+        connection.execute(
+            "SELECT name FROM migrations WHERE name = %s",
             ("import_legacy_posts",),
-        ).fetchone()
+        )
+        migration = connection.fetchone()
         if migration is None:
             try:
                 legacy_posts = json.loads(LEGACY_DATA_FILE.read_text(encoding="utf-8"))
@@ -79,7 +96,7 @@ def init_database():
                     content = str(post.get("comment", "")).strip()[:1000]
                     if content:
                         connection.execute(
-                            "INSERT INTO posts (author_name, content, created_at) VALUES (?, ?, ?)",
+                            "INSERT INTO posts (author_name, content, created_at) VALUES (%s, %s, %s)",
                             (
                                 author_name,
                                 content,
@@ -87,7 +104,7 @@ def init_database():
                             ),
                         )
             connection.execute(
-                "INSERT INTO migrations (name) VALUES (?)",
+                "INSERT INTO migrations (name) VALUES (%s)",
                 ("import_legacy_posts",),
             )
 
@@ -134,16 +151,16 @@ def register():
 
     try:
         with database() as connection:
-            cursor = connection.execute(
-                "INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)",
+            connection.execute(
+                "INSERT INTO users (username, password_hash, created_at) VALUES (%s, %s, %s)",
                 (
                     username,
                     generate_password_hash(password),
                     datetime.now(timezone.utc).isoformat(),
                 ),
             )
-            user_id = cursor.lastrowid
-    except sqlite3.IntegrityError:
+            user_id = connection.lastrowid
+    except pymysql.err.IntegrityError:
         return render_template(
             "register.html", error="Användarnamnet används redan."
         ), 400
@@ -164,10 +181,11 @@ def login():
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
     with database() as connection:
-        user = connection.execute(
-            "SELECT id, username, password_hash FROM users WHERE username = ?",
+        connection.execute(
+            "SELECT id, username, password_hash FROM users WHERE username = %s",
             (username,),
-        ).fetchone()
+        )
+        user = connection.fetchone()
 
     if user is None or not check_password_hash(user["password_hash"], password):
         return render_template(
@@ -197,7 +215,7 @@ def forum():
         else:
             with database() as connection:
                 connection.execute(
-                    "INSERT INTO posts (user_id, author_name, content, created_at) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO posts (user_id, author_name, content, created_at) VALUES (%s, %s, %s, %s)",
                     (
                         session["user_id"],
                         session["username"],
@@ -208,9 +226,10 @@ def forum():
             return redirect(url_for("forum"))
 
     with database() as connection:
-        posts = connection.execute(
+        connection.execute(
             "SELECT author_name, content, created_at FROM posts ORDER BY created_at DESC, id DESC"
-        ).fetchall()
+        )
+        posts = connection.fetchall()
     return render_template(
         "index.html", posts=posts, error=error, username=session["username"]
     )
