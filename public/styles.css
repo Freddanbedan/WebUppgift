@@ -80,6 +80,11 @@ button:hover { background: var(--dark-blue); }
 .post:last-child { border-bottom: 0; }
 .post time { float: right; color: #687f99; font-size: 0.85rem; }
 .post p { margin-bottom: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.vote-actions { display: flex; gap: 10px; }
+.vote-actions form { margin: 0; }
+.vote-button { margin-top: 12px; padding: 7px 11px; }
+.dislike-button { background: #64748b; }
+.dislike-button:hover { background: #475569; }
 
 @media (max-width: 500px) {
   .container, .login-container { padding-top: 28px; }

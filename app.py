@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import re
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 import pymysql
 from pymysql.cursors import DictCursor
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -67,6 +67,16 @@ def init_database():
                 content VARCHAR(1000) NOT NULL,
                 created_at VARCHAR(40) NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS votes (
+                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                post_id INT NOT NULL,
+                vote_type ENUM('like', 'dislike') NOT NULL,
+                FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
             """
         )
@@ -204,6 +214,24 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.post("/posts/<int:post_id>/vote")
+@login_required
+def vote(post_id):
+    vote_type = request.form.get("vote_type")
+    if vote_type not in {"like", "dislike"}:
+        abort(400)
+
+    with database() as connection:
+        connection.execute("SELECT id FROM posts WHERE id = %s", (post_id,))
+        if connection.fetchone() is None:
+            abort(404)
+        connection.execute(
+            "INSERT INTO votes (post_id, vote_type) VALUES (%s, %s)",
+            (post_id, vote_type),
+        )
+    return redirect(url_for("forum"))
+
+
 @app.route("/forum", methods=["GET", "POST"])
 @login_required
 def forum():
@@ -227,7 +255,17 @@ def forum():
 
     with database() as connection:
         connection.execute(
-            "SELECT author_name, content, created_at FROM posts ORDER BY created_at DESC, id DESC"
+            """
+            SELECT
+                p.id,
+                p.author_name,
+                p.content,
+                p.created_at,
+                (SELECT COUNT(*) FROM votes v WHERE v.post_id = p.id AND v.vote_type = 'like') AS likes,
+                (SELECT COUNT(*) FROM votes v WHERE v.post_id = p.id AND v.vote_type = 'dislike') AS dislikes
+            FROM posts p
+            ORDER BY p.created_at DESC, p.id DESC
+            """
         )
         posts = connection.fetchall()
     return render_template(

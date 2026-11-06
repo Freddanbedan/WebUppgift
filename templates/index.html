@@ -11,7 +11,7 @@
     <header class="forum-header">
       <div>
         <p class="eyebrow">PROGRAMMERING OCH DATA</p>
-        <h1>Forum för fårskallar</h1>
+        <h1>Fårum</h1>
       </div>
       <div class="user-actions">
         <strong>{{ username }}</strong>
@@ -38,6 +38,18 @@
           <strong>{{ post["author_name"] }}</strong>
           <time>{{ post["created_at"][:16].replace('T', ' ') }}</time>
           <p>{{ post["content"] }}</p>
+          <div class="vote-actions">
+            <form method="post" action="{{ url_for('vote', post_id=post['id']) }}">
+              <button class="vote-button" type="submit" name="vote_type" value="like" aria-label="Gilla inlägget">
+                Gilla <span>{{ post["likes"] }}</span>
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('vote', post_id=post['id']) }}">
+              <button class="vote-button dislike-button" type="submit" name="vote_type" value="dislike" aria-label="Ogilla inlägget">
+                Ogilla <span>{{ post["dislikes"] }}</span>
+              </button>
+            </form>
+          </div>
         </article>
       {% else %}
         <p>Det finns inga inlägg ännu.</p>
